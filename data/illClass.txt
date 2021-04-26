@@ -1,0 +1,11 @@
+妇科疾病 nhl
+心理疾病 nhl
+肛肠疾病 nhl
+宫颈疾病 nhl
+呼吸疾病 nhl
+口腔疾病 nhl
+胃肠疾病 nhl
+心脑血管疾病 nhl
+心血管疾病 nhl
+牙科病 nhl
+男科病 nhl
