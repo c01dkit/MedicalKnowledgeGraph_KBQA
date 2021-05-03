@@ -2,7 +2,7 @@ import json
 
 def generateDICT():
     """用于生成专有名词字典文件
-
+ 
     :return:
     """
     # output = open("../data/illName.txt",'w+',encoding='utf-8')
