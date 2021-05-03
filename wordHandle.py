@@ -14,6 +14,7 @@ class Tagger:
         for p in dict_paths:
             jieba.load_userdict(p)  # 加载外部词典
 
-    def get_word_objects(self, sentence):
+    @staticmethod
+    def get_word_objects(sentence):
         #print([word for word in psg.cut(sentence)])
         return [Word(word, tag) for word, tag in psg.cut(sentence)]  #分词，获取单词与词性

@@ -13,7 +13,8 @@ class sparqlConnect:
         self.sparqlConnect.setReturnFormat(JSON)
         return self.sparqlConnect.query().convert()
 
-    def parse_result(self, query_result):   # 解析结果json
+    @staticmethod
+    def parse_result(query_result):   # 解析结果json
         try:
             query_head = query_result['head']['vars']
             query_results = list()

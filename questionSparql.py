@@ -17,7 +17,7 @@ class QuestionSparql:
             query, num, desc= rule.apply(word_objects)
             if query is not None:
                 queries_dict[num] = query
-                print(f'匹配问题: {desc} 其使用关键字个数为{num}')
+                print(f'匹配问题: {desc} 其权重为{num}')
         if len(queries_dict) == 0:
             return None
         elif len(queries_dict) == 1:

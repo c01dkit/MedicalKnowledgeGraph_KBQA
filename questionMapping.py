@@ -1,7 +1,12 @@
+"""
+用于编写匹配规则
+1. 首先定义关键词：既可以使用自定义词典的pos分词，也可以手动定义token分词
+2. 然后在Question类内定义触发时所用的函数，拼接Sparql查询语句
+3. 最后在rules列表内添加新的匹配规则，需要定义好权重、说明、匹配规则、调用函数等信息
+"""
 from refo import finditer, Predicate, Star, Any   # 正则表达式库
 import re
 
-# TODO SPARQL前缀和模板
 SPARQL_PREFIX = u"""
     PREFIX : <http://www.medicalQA.zju/>
 """
@@ -34,7 +39,8 @@ class W(Predicate):
 
 
 class Rule(object):
-    def __init__(self, condition_weight, description=None, condition=None, action=None):
+    def __init__(self, condition_weight, description=None,
+                 condition=None, action=None):
         assert condition and action
         self.condition_weight = condition_weight
         self.description = description
@@ -49,49 +55,53 @@ class Rule(object):
         return self.action(matches), self.condition_weight, self.description
 
 
-# TODO 定义关键词
-illName = 'nhd'   # 具体的疾病名
-medicalName = 'nhn'   # 医学相关的名词
-illDepartment = 'nhc'  # 疾病所属科目
-illClass = 'nhl' # 疾病类别
-drug = 'nhm' # 药品名称
+
+illName = 'nhd'         # 具体的疾病名
+medicalName = 'nhn'     # 医学相关的名词
+illDepartment = 'nhc'   # 疾病所属科目
+illClass = 'nhl'        # 疾病类别
+drug = 'nhm'            # 药品名称
+illSymptom = 'nhs'         # 疾病症状
 
 illName_entity = (W(pos=illName))
 illDepartment_entity = (W(pos=illDepartment))
 illClass_entity = (W(pos=illClass))
 medical_entity = (W(pos=medicalName))
 drug_entity = (W(pos=drug))
+illSymptom_pos = (W(pos=illSymptom))
 
 is_ = (W('是'))
 dis = (W('不')|W('不能'))
 contains = (W('包括') | W('有') | W('涵盖') | W('包含'))
 what = (W('什么') | W('哪些') | W('多少'))
 should = (W('适合')| W('宜') |W('应该') |W('需要') |W('应当')|W('可以')|W('能')|W('了能'))
-whether = (W('有没有')|W('是否')|W('是不是'))
+whether = (W('有没有')|W('是否')|W('是不是')|W('有无'))
+why = (W('为什么')|W('为啥'))
 
-
-disease = (W('疾病')|W('病'))
-department_of = (W('科室') | W('科'))
-clinic = (W('临床')|W('医学'))
 cause = (W('导致') | W('诱因') | W('引起') |W('起因') |W('病因') |W('原因') |W('成因'))
+clinic = (W('临床')|W('医学'))
 cost = (W('收费')|W('花销')|W('开销')|W('钱'))
-insurance = (W('医保') | W('医疗保险'))
+cure_ratio = (W('治愈率')| W('康复率') |W('成功率'))
+department_of = (W('科室') | W('科'))
+desc = (W('介绍')|W('描述'))
+diagnosis = (W('诊断')| W('确诊') | W('判断'))
+disease = (W('疾病')|W('病'))
 drug = (W('药') | W('药物') |W('药品'))
 food = (W('食物')|W('吃')|W('摄入'))
-mobidity = (W('患病率') | W('发病率') | W('患病比例') |W('得病率'))
-cure_ratio = (W('治愈率')| W('康复率') |W('成功率'))
-susceptible = (W('易感人群')|W('人群'))
-spread = (W('传染') | W('传染性') |W('传播') |W('传播性'))
-period = (W('治疗周期')| W('治疗时间') |W('时间')|W('多久'))
-neopathy = (W('并发症'))
-symptom = (W('症状') | W('表现') |W('状况'))
-diagnosis = (W('诊断')| W('确诊') | W('判断'))
-suggestion = (W('建议')|W('怎么办'))
-prevent = (W('预防')|W('避免'))
 inspect = (W('检查')|W('诊断'))
+insurance = (W('医保') | W('医疗保险'))
+mobidity = (W('患病率') | W('发病率') | W('患病比例') |W('得病率'))
+neopathy = (W('并发症'))
 nursing = (W('护理'))
-desc = (W('介绍')|W('描述'))
+period = (W('治疗周期')| W('治疗时间') |W('时间')|W('多久'))
+prevent = (W('预防')|W('避免'))
+spread = (W('传染') | W('传染性') |W('传播') |W('传播性'))
+suggestion = (W('建议')|W('怎么办'))
+susceptible = (W('易感人群')|W('人群'))
+symptom = (W('症状') | W('表现') |W('状况'))
 treat = (W('治疗方式'))
+treatment = (W('治')|W('治疗')|W('治愈'))
+
 class Question:
     def __init__(self):
         pass
@@ -117,8 +127,11 @@ class Question:
         sparql = None
         for w in word_objects:
             if w.pos == illName:
-                e = u"?a :ill_name '{illName}'." \
-                    u"?a :suggestion ?x".format(illName=w.token)
+                e = u"{" + u"?a :ill_name '{illName}'." \
+                    u"?a :suggestion ?x.".format(illName=w.token) + u"} UNION "\
+                    u"{" + u"?a :ill_name '{illName}'." \
+                    u"?a :nursing ?x.".format(illName=w.token) + u"}"
+
 
                 sparql = SPARQL_SELECT_TEM.format(prefix=SPARQL_PREFIX,
                                                   select=select,
@@ -322,6 +335,22 @@ class Question:
         return sparql
 
     @staticmethod
+    def judge_illness(word_objects):  # 根据症状查询疾病
+        select = u"?x"
+        sparql = None
+        for w in word_objects:
+            if w.pos == illSymptom:
+                e = u"?a :ill_name ?x." \
+                    u"?a :symptom ?b."\
+                    u"FILTER regex(?b, '{illsymtom}')".format(illsymtom=w.token)
+
+                sparql = SPARQL_SELECT_TEM.format(prefix=SPARQL_PREFIX,
+                                                  select=select,
+                                                  expression=e)
+                break
+        return sparql
+
+    @staticmethod
     def find_illness_neopathy(word_objects):  # 查询疾病并发症
         select = u"?x"
         sparql = None
@@ -352,7 +381,7 @@ class Question:
         return sparql
 
     @staticmethod
-    def whether_is_spread(word_objects):  # 查询疾病传染性
+    def find_illness_spread(word_objects):  # 查询疾病传染性
         select = u"?x"
         sparql = None
         for w in word_objects:
@@ -367,7 +396,7 @@ class Question:
         return sparql
 
     @staticmethod
-    def whether_is_insurance(word_objects):  # 查询疾病是否纳入医疗保险
+    def find_illness_insurance(word_objects):  # 查询疾病是否纳入医疗保险
         select = u"?x"
         sparql = None
         for w in word_objects:
@@ -382,7 +411,7 @@ class Question:
         return sparql
 
     @staticmethod
-    def is_a_kind_of_question(word_objects):  # 查询疾病所属科室
+    def find_illness_department(word_objects):  # 查询疾病所属科室
         select = u"?x"
         sparql = None
         for w in word_objects:
@@ -398,7 +427,7 @@ class Question:
         return sparql
 
     @staticmethod
-    def takein_what_drug(word_objects):  # 查询疾病所用药品
+    def find_illness_drugs(word_objects):  # 查询疾病所用药品
         select = u"?x"
         sparql = None
         for w in word_objects:
@@ -414,7 +443,23 @@ class Question:
         return sparql
 
     @staticmethod
-    def find_subillness_question(word_objects):  # 查询某个科室下的疾病
+    def find_illness_treatment(word_objects):  # 查询疾病治疗手段
+        select = u"?x"
+        sparql = None
+        for w in word_objects:
+            if w.pos == illName:
+                e = u"?a :ill_name '{illName}'." \
+                    u"?a :treatment ?b." \
+                    u"?b :name ?x".format(illName=w.token)
+
+                sparql = SPARQL_SELECT_TEM.format(prefix=SPARQL_PREFIX,
+                                                  select=select,
+                                                  expression=e)
+                break
+        return sparql
+
+    @staticmethod
+    def find_department_illnesses(word_objects):  # 查询某个科室下的疾病
         select = u"?x"
 
         sparql = None
@@ -443,20 +488,20 @@ class Question:
 rules = [
     Rule(condition_weight=2, description='查询疾病所属科室',
          condition=(illName_entity + Star(Any(), greedy=False)+ department_of + Star(Any(), greedy=False)),
-         action=Question.is_a_kind_of_question),
+         action=Question.find_illness_department),
 
     Rule(condition_weight=4, description='查询科室下属疾病',
          condition=((illDepartment_entity + contains + what + Star(disease,greedy=False)) |
                     (illClass_entity + Star(Any(), greedy=False) + contains + what + Star(disease,greedy=False))),
-         action=Question.find_subillness_question),
+         action=Question.find_department_illnesses),
 
     Rule(condition_weight=2, description='查询疾病是否医保',
          condition=(illName_entity + Star(Any(),greedy=False) + insurance),
-         action=Question.whether_is_insurance),
+         action=Question.find_illness_insurance),
 
     Rule(condition_weight=2, description='查询疾病传染性',
          condition=(illName_entity + Star(Any(), greedy=False) + spread),
-         action=Question.whether_is_spread),
+         action=Question.find_illness_spread),
 
     Rule(condition_weight=2, description='查询疾病并发症',
          condition=(illName_entity + Star(Any(), greedy=False) + neopathy),
@@ -475,7 +520,7 @@ rules = [
          condition=(illName_entity + Star(Any() | clinic, greedy=False) + diagnosis),
          action=Question.find_illness_diagnosis),
 
-    Rule(condition_weight=2, description='查询疾病治疗费用',
+    Rule(condition_weight=3, description='查询疾病治疗费用',
          condition=(illName_entity + Star(Any(), greedy=False) + cost),
          action=Question.find_illness_cost),
 
@@ -497,7 +542,7 @@ rules = [
          action=Question.find_illness_suggestion),
 
     Rule(condition_weight=3, description='查询疾病宜食',
-         condition=(illName_entity + Star(Any(), greedy=False) + should + food),
+         condition=(illName_entity + Star(Any(), greedy=False) + Star(should,greedy=False) + food),
          action=Question.find_illness_goodfood),
 
     Rule(condition_weight=4, description='查询疾病忌食',
@@ -515,6 +560,10 @@ rules = [
          condition=(illName_entity + Star(Any(), greedy=False) + mobidity),
          action=Question.find_illness_mobidity),
 
+    Rule(condition_weight=2, description='查询疾病治疗手段',
+         condition=(illName_entity + Star(Any(), greedy=False) + treatment),
+         action=Question.find_illness_treatment),
+
     Rule(condition_weight=2, description='查询疾病易感人群',
          condition=(illName_entity + Star(Any(), greedy=False) + susceptible),
          action=Question.find_illness_susceptible),
@@ -531,7 +580,13 @@ rules = [
          condition=(illName_entity + Star(Any(), greedy=False) + treat),
          action=Question.find_illness_treat),
 
-    Rule(condition_weight=2, description='查询疾病所用药物',
+    Rule(condition_weight=4, description='查询疾病所用药物',
          condition=(illName_entity + Star(Any(),greedy=False) + drug),
-         action=Question.takein_what_drug)
+         action=Question.find_illness_drugs),
+
+    Rule(condition_weight=5, description='根据症状查询疾病',
+         condition=((illSymptom_pos + Star(Any(),greedy=False) + disease)|
+                    (why + Star(Any(),greedy=False) + illSymptom_pos)|
+                    (illSymptom_pos + Star(Any(),greedy=False) + what)),
+         action=Question.judge_illness)
    ]
