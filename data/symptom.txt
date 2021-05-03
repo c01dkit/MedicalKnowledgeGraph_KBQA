@@ -65,3 +65,4 @@
 嗜睡 nhs
 干咳 nhs
 食欲减退 nhs
+头疼 nhs
