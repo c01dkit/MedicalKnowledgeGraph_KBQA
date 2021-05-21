@@ -12,7 +12,6 @@ if __name__ == '__main__':
         u'./data/symptom.txt',              # 疾病症状
         u'./data/extendWords.txt'           # 拓展词典
     ])
-
     while True:
         question = input("")
         if question == 'q':

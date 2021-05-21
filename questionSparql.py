@@ -11,13 +11,13 @@ class QuestionSparql:
     def get_sparql(self, question):  # 语义解析
         word_objects = self.tw.get_word_objects(question)
         queries_dict = dict()
-        for i in word_objects:
-            print(i.__dict__)
+        #for i in word_objects:
+        #    print(i.__dict__)
         for rule in self.rules:
             query, num, desc= rule.apply(word_objects)
             if query is not None:
                 queries_dict[num] = query
-                print(f'匹配问题: {desc} 其权重为{num}')
+                #print(f'匹配问题: {desc} 其权重为{num}')
         if len(queries_dict) == 0:
             return None
         elif len(queries_dict) == 1:

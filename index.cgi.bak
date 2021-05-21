@@ -1,0 +1,6 @@
+#!/usr/bin/python
+from wsgiref.handlers import CGIHandler
+from web_server import app
+
+CGIHandler().run(app)
+
