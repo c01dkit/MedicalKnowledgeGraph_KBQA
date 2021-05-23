@@ -71,10 +71,10 @@ drug_entity = (W(pos=drug))
 illSymptom_pos = (W(pos=illSymptom))
 
 is_ = (W('是'))
-dis = (W('不')|W('不能'))
+dis = (W('不')|W('不能')|W('不可以'))
 contains = (W('包括') | W('有') | W('涵盖') | W('包含'))
 what = (W('什么') | W('哪些') | W('多少')|W('咋')|W('啥'))
-should = (W('适合')| W('宜') |W('应该') |W('需要') |W('应当')|W('可以')|W('能')|W('了能'))
+should = (W('最好')|W('适合')| W('宜') |W('应该') |W('需要') |W('应当')|W('可以')|W('能')|W('了能'))
 whether = (W('有没有')|W('是否')|W('是不是')|W('有无'))
 why = (W('为什么')|W('为啥'))
 
@@ -83,20 +83,20 @@ clinic = (W('临床')|W('医学'))
 cost = (W('收费')|W('花销')|W('开销')|W('钱'))
 cure_ratio = (W('治愈率')| W('康复率') |W('成功率'))
 department_of = (W('科室') | W('科'))
-desc = (W('介绍')|W('描述'))
+desc = (W('介绍')|W('描述')|W('简介')|W('情况')|W('概述'))
 diagnosis = (W('诊断')| W('确诊') | W('判断'))
 disease = (W('疾病')|W('病'))
 drug = (W('药') | W('药物') |W('药品'))
-food = (W('食物')|W('吃')|W('摄入'))
+food = (W('食物')|W('吃')|W('摄入')|W('食')|W('吃什么'))
 inspect = (W('检查')|W('诊断'))
 insurance = (W('医保') | W('医疗保险'))
-mobidity = (W('患病率') | W('发病率') | W('患病比例') |W('得病率'))
+mobidity = (W('患病率') | W('发病率') | W('患病比例') |W('得病率')|W('生病率'))
 neopathy = (W('并发症'))
-nursing = (W('护理'))
+nursing = (W('护理')|W('照顾'))
 period = (W('治疗周期')| W('治疗时间') |W('时间')|W('多久'))
 prevent = (W('预防')|W('避免'))
 spread = (W('传染') | W('传染性') |W('传播') |W('传播性'))
-suggestion = (W('建议')|W('怎么办'))
+suggestion = (W('建议')|W('怎么办')|W('注意')|W('注意事项')|W('关注'))
 susceptible = (W('易感人群')|W('人群'))
 symptom = (W('症状') | W('表现') |W('状况'))
 treat = (W('治疗方式'))
@@ -562,7 +562,7 @@ rules = [
 
     Rule(condition_weight=2, description='查询疾病治疗手段',
          condition=(illName_entity + Star(Any(), greedy=False) + treatment),
-         action=Question.find_illness_treatment),
+         action=Question.find_illness_treat),
 
     Rule(condition_weight=2, description='查询疾病易感人群',
          condition=(illName_entity + Star(Any(), greedy=False) + susceptible),

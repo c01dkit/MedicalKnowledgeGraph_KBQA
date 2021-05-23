@@ -18,7 +18,7 @@ if __name__ == '__main__':
             break
 
         query = q2s.get_sparql(question) # 语义解析 获取sparsql查询语句
-
+        print(query)
         if query is not None:
 
             result = sparql.get_sparql_result(query) # 进行查询 以json格式返回结果

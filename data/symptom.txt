@@ -9,7 +9,6 @@
 面色苍白 nhs
 血压下降 nhs
 紫绀 nhs
-头痛 nhs
 极度口渴 nhs
 咽喉干燥 nhs
 咽喉充血 nhs
