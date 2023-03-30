@@ -13,4 +13,4 @@
 * 启动apache-fuseki-server服务，新建medical_kbqa数据库，并添加illness-info.rdf文件到数据库中
 * 运行medical_main.py，确保能正常运行
 
-前端代码暂不提供。
+（该项目没有前端页面）
